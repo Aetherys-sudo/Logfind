@@ -26,11 +26,11 @@ error:
 int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 {
 	char buff[MAX_WORD];
-	char ch;
 	int i, j;
 	int count = 0;
+	char line[MAX_BUFFER];
 	
-	while(!feof(input))
+	/*while(!feof(input))
 	{
 		memset(buff, 0, sizeof(buff));
 		ch = fgetc(input);
@@ -40,26 +40,43 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 			ch = fgetc(input);
 		}
 		buff[i] = '\0';
-		if (buff[0] != 0)
+			
+	}*/
+	
+	while (fgets(line, MAX_BUFFER, input) != NULL)
+	{
+		for (i = 0; line[i] != '\0'; i ++)
 		{
-			for (j = 0; j < w_count; j ++)
+			for (j = 0; LETTER(line[i]); j ++)
 			{
-				if (strcmp(buff, words[j]) == 0)
+				buff[j] = line[i];
+				i ++;
+			}
+			buff[j] = '\0';
+			
+			
+			if (buff[0] != 0)
+			{
+				
+				for (j = 0; j < w_count; j ++)
 				{
-					count ++;
+					if (strcmp(buff, words[j]) == 0)
+					{
+						count ++;
+						fprintf("Line: %s\n", line);
+					}
 				}
 			}
-		}
 			
-	}
-	if (count == w_count)
-	{
-		printf("File %s contains: ", f_name);
-		for (j = 0; j < w_count; j ++)
-		{
-			printf("%s ", words[j]);
+			if (!LETTER(line[i]))
+			{
+				memset(buff, 0, sizeof(buff));
+			}
+			
 		}
 	}
+	
+	
 	
 	return 0;
 }
