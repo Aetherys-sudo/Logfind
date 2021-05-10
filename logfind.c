@@ -3,6 +3,7 @@
 #include "debug.h"
 #include <string.h>
 #include <ctype.h>
+#include <glob.h>
 
 #define MAX_BUFFER 1024
 #define MAX_WORD 50
@@ -23,7 +24,7 @@ error:
 }
 	
 //function that checks if the word passed as argument is in the file or not
-int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
+int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name, char mode)
 {
 	char buff[MAX_WORD];
 	int i, j;
@@ -32,19 +33,6 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 	FILE *temp;
 	temp = fopen("temp", "w");
 	check(temp != NULL, "Could not create temp file.");
-	
-	/*while(!feof(input))
-	{
-		memset(buff, 0, sizeof(buff));
-		ch = fgetc(input);
-		for (i = 0; LETTER(ch); i ++)
-		{
-			buff[i] = ch;
-			ch = fgetc(input);
-		}
-		buff[i] = '\0';
-			
-	}*/
 	
 	while (fgets(line, MAX_BUFFER, input) != NULL)
 	{
@@ -64,7 +52,7 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 				for (j = 0; j < w_count; j ++)
 				{
 					if (strcmp(buff, words[j]) == 0)
-					{
+					{	
 						count ++;
 						fprintf(temp, "%s", line);
 					}
@@ -83,18 +71,28 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 	memset(line, 0, sizeof(line));
 	temp = fopen("temp", "r");
 	
-	if (count >= w_count)
+	if (count >= w_count && mode != 'o')
 	{
-		printf("File %s contains the given words.\n", f_name);
 		while (fgets(line, MAX_BUFFER, temp) != NULL)
 			printf("%s\n", line);
 	}
-	//remove("temp");
+	
+	if (mode == 'o')
+	{
+		while (fgets(line, MAX_BUFFER, temp) != NULL)
+			printf("%s\n", line);
+	}
+	
+	fclose(temp);
+	int c = remove("temp");
+	check(c == 0, "Could not remove temp file.");
 	
 	return 0;
 	
 error:
-	exit(1);
+	fclose(input);
+	fclose(temp);
+	return -1;
 }
 	
 int main(int argc, char *argv[])
@@ -103,23 +101,23 @@ int main(int argc, char *argv[])
 	file = file_open(argv[1], "r");
 	if (file)
 		printf("File %s opened successfully.\n", argv[1]);
+		
 	
 	char words[argc - 2][MAX_WORD];
 	int i;
+	char mode;
 	for (i = 0; i < argc - 2; i ++)
 	{
-		strcpy(words[i], argv[i + 2]);
+		if (argv[i + 2][0] == '-')
+			mode = argv[i + 2][1];
+		else
+			strcpy(words[i], argv[i + 2]);
 	}
-	//check(argc == 3, "You need to specify word to search.");
-	read(file, words, argc - 2, argv[1]);
+	
+	read(file, words, argc - 2, argv[1], mode);
 	
 	
 
 	fclose(file);
-	return 0;
-	
-/*error:
-	if (file) fclose(file);
-	return -1;*/
-	
+	return 0;	
 }
