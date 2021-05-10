@@ -29,6 +29,9 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 	int i, j;
 	int count = 0;
 	char line[MAX_BUFFER];
+	FILE *temp;
+	temp = fopen("temp", "w");
+	check(temp != NULL, "Could not create temp file.");
 	
 	/*while(!feof(input))
 	{
@@ -63,7 +66,7 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 					if (strcmp(buff, words[j]) == 0)
 					{
 						count ++;
-						fprintf("Line: %s\n", line);
+						fprintf(temp, "%s", line);
 					}
 				}
 			}
@@ -76,9 +79,22 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name)
 		}
 	}
 	
+	fclose(temp);
+	memset(line, 0, sizeof(line));
+	temp = fopen("temp", "r");
 	
+	if (count >= w_count)
+	{
+		printf("File %s contains the given words.\n", f_name);
+		while (fgets(line, MAX_BUFFER, temp) != NULL)
+			printf("%s\n", line);
+	}
+	//remove("temp");
 	
 	return 0;
+	
+error:
+	exit(1);
 }
 	
 int main(int argc, char *argv[])
