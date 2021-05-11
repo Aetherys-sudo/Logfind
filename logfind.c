@@ -4,27 +4,14 @@
 #include <string.h>
 #include <ctype.h>
 #include <glob.h>
+#include <dirent.h>
 
 #define MAX_BUFFER 1024
 #define MAX_WORD 50
 #define LETTER(A) (A >= 'a' && A <= 'z') || (A >= 'A' && A <= 'Z')
-
-
-//function that deals with file handling
-FILE *file_open(const char *name, const char *mode)
-{
-	FILE *file;
-	file = fopen(name, mode);
-	check(file != NULL, "Could not open file.");
-	
-	return file;
-error:
-	fclose(file);
-	return NULL;
-}
 	
 //function that checks if the word passed as argument is in the file or not
-int read(FILE *input, char words[][MAX_WORD], int w_count, const char *f_name, char mode)
+int read(FILE *input, char words[][MAX_WORD], int w_count, char mode)
 {
 	char buff[MAX_WORD];
 	int i, j;
@@ -97,27 +84,70 @@ error:
 	
 int main(int argc, char *argv[])
 {
-	FILE *file = NULL;
-	file = file_open(argv[1], "r");
-	if (file)
-		printf("File %s opened successfully.\n", argv[1]);
+	//argument parsing
+	if (argc == 1)
+	{
+		printf("Specify arguments");
+		return 1;
+	}
 		
-	
-	char words[argc - 2][MAX_WORD];
+	char words[argc - 1][MAX_WORD];
 	int i;
 	char mode;
-	for (i = 0; i < argc - 2; i ++)
+	for (i = 0; i < argc - 1; i ++)
 	{
-		if (argv[i + 2][0] == '-')
-			mode = argv[i + 2][1];
+		if (argv[i + 1][0] == '-')
+			mode = argv[i + 1][1];
 		else
-			strcpy(words[i], argv[i + 2]);
+			strcpy(words[i], argv[i + 1]);
 	}
 	
-	read(file, words, argc - 2, argv[1], mode);
+	//file handling
+	glob_t paths;
+	paths.gl_pathc = 0;
+	paths.gl_pathv = NULL;
+	paths.gl_offs = 0;
 	
+	glob("~/.logfind/*", GLOB_NOSORT | GLOB_TILDE , NULL, &paths);
 	
-
-	fclose(file);
+	int idx, ids;
+	int count;
+	char buff[MAX_WORD];
+	int j;
+	char path[MAX_BUFFER];
+	FILE *file;
+	for (idx = 0; idx < paths.gl_pathc; idx ++)
+	{
+		count = 0;
+		j = 0;
+		strcpy(path, paths.gl_pathv[idx]);
+		printf("%s\n", path);
+		for (ids = 0; ids < strlen(path); ids ++)
+		{
+			if (path[ids] == '/')
+				count ++;
+			if (count == 4)
+			{	
+				ids ++;
+				while (path[ids] != '\0')
+				{
+					buff[j] = path[ids];
+					j ++;
+					ids ++;
+				}
+				break;
+			}
+		}
+		buff[j] = '\0';
+		file = fopen(buff, "r");
+		check(file != NULL, "File %s cannot be opened.", buff);
+		read(file, words, argc - 1, mode);
+		printf("%s\n", buff);
+		fclose(file);
+	}
+	
+		
 	return 0;	
+error:
+	return 1;
 }
