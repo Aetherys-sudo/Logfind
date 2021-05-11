@@ -115,34 +115,15 @@ int main(int argc, char *argv[])
 	char buff[MAX_WORD];
 	int j;
 	char path[MAX_BUFFER];
-	FILE *file;
+	FILE *file = NULL;
 	for (idx = 0; idx < paths.gl_pathc; idx ++)
 	{
 		count = 0;
 		j = 0;
 		strcpy(path, paths.gl_pathv[idx]);
 		printf("%s\n", path);
-		for (ids = 0; ids < strlen(path); ids ++)
-		{
-			if (path[ids] == '/')
-				count ++;
-			if (count == 4)
-			{	
-				ids ++;
-				while (path[ids] != '\0')
-				{
-					buff[j] = path[ids];
-					j ++;
-					ids ++;
-				}
-				break;
-			}
-		}
-		buff[j] = '\0';
-		file = fopen(buff, "r");
-		check(file != NULL, "File %s cannot be opened.", buff);
+		file = fopen(path, "r");
 		read(file, words, argc - 1, mode);
-		printf("%s\n", buff);
 		fclose(file);
 	}
 	
