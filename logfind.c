@@ -4,14 +4,14 @@
 #include <string.h>
 #include <ctype.h>
 #include <glob.h>
-#include <dirent.h>
 
 #define MAX_BUFFER 1024
 #define MAX_WORD 50
 #define LETTER(A) (A >= 'a' && A <= 'z') || (A >= 'A' && A <= 'Z')
+
 	
 //function that checks if the word passed as argument is in the file or not
-int read(FILE *input, char words[][MAX_WORD], int w_count, char mode)
+int read(FILE *input, char words[][MAX_WORD], int w_count, char mode, const char *f_name)
 {
 	char buff[MAX_WORD];
 	int i, j;
@@ -20,9 +20,11 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, char mode)
 	FILE *temp;
 	temp = fopen("temp", "w");
 	check(temp != NULL, "Could not create temp file.");
+	int l_count = 0;
 	
 	while (fgets(line, MAX_BUFFER, input) != NULL)
 	{
+		l_count ++;
 		for (i = 0; line[i] != '\0'; i ++)
 		{
 			for (j = 0; LETTER(line[i]); j ++)
@@ -61,13 +63,13 @@ int read(FILE *input, char words[][MAX_WORD], int w_count, char mode)
 	if (count >= w_count && mode != 'o')
 	{
 		while (fgets(line, MAX_BUFFER, temp) != NULL)
-			printf("%s\n", line);
+			printf("LINE [%s: %d] %s", f_name, l_count, line);
 	}
 	
 	if (mode == 'o')
 	{
 		while (fgets(line, MAX_BUFFER, temp) != NULL)
-			printf("%s\n", line);
+			printf("LINE [%s: %d] %s", f_name, l_count, line);
 	}
 	
 	fclose(temp);
@@ -107,28 +109,21 @@ int main(int argc, char *argv[])
 	paths.gl_pathc = 0;
 	paths.gl_pathv = NULL;
 	paths.gl_offs = 0;
-	
 	glob("~/.logfind/*", GLOB_NOSORT | GLOB_TILDE , NULL, &paths);
 	
-	int idx, ids;
-	int count;
-	char buff[MAX_WORD];
-	int j;
+	
+	int idx;
 	char path[MAX_BUFFER];
 	FILE *file = NULL;
 	for (idx = 0; idx < paths.gl_pathc; idx ++)
 	{
-		count = 0;
-		j = 0;
 		strcpy(path, paths.gl_pathv[idx]);
-		printf("%s\n", path);
 		file = fopen(path, "r");
-		read(file, words, argc - 1, mode);
+		read(file, words, argc - 1, mode, path);
 		fclose(file);
 	}
 	
 		
 	return 0;	
-error:
-	return 1;
+
 }
