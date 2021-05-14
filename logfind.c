@@ -95,33 +95,38 @@ int main(int argc, char *argv[])
 		
 	//char words[argc - 1][MAX_WORD];
 	char **words = (char**) malloc(argc * sizeof(char*));
+	check_mem(words);
+	
 	int i;
 	char mode;
 	for (i = 0; i < argc; i ++)
 	{
 		words[i] = (char*) malloc(MAX_WORD * sizeof(char));
+		check_mem(words[i]);
 	}
 	
+	char *rc = NULL;
 	for (i = 0; i < argc - 1; i ++)
 	{
-		printf("arg: %s\n", argv[i + 1]);
 		if (argv[i + 1][0] == '-')
 		{
 			mode = argv[i + 1][1];
 		}
 		else
 		{
-			strcpy(words[i], argv[i + 1]);
+			rc = strcpy(words[i], argv[i + 1]);
+			check(rc != NULL, "Copy was not successful.");
 		}
 	}
 	
 	//file handling
+	int ch = 0;
 	glob_t paths;
 	paths.gl_pathc = 0;
 	paths.gl_pathv = NULL;
 	paths.gl_offs = 0;
-	glob("~/.logfind/*", GLOB_NOSORT | GLOB_TILDE , NULL, &paths);
-	
+	ch = glob("~/.logfind/*", GLOB_NOSORT | GLOB_TILDE , NULL, &paths);
+	check(ch == 0, "glob() was not successful.");
 	
 	int idx;
 	char path[MAX_BUFFER];
@@ -130,7 +135,9 @@ int main(int argc, char *argv[])
 	{
 		strcpy(path, paths.gl_pathv[idx]);
 		file = fopen(path, "r");
-		read(file, words, argc - 1, mode, path);
+		check (file != NULL, "File could not be opened.");
+		ch = read(file, words, argc - 1, mode, path);
+		check(ch == 0, "Read function failed.");
 		fclose(file);
 	}
 	
@@ -141,6 +148,20 @@ int main(int argc, char *argv[])
 	
 	globfree(&paths);
 	free(words);	
-	return 0;	
+	return 0;
+	
+error:
+	globfree(&paths);
+	fclose(file);
+	if (words)
+	{
+		for (i = 0; i < argc; i ++)
+		{
+			free(words[i]);
+		}
+		free(words);
+	}
+	return 1;
+
 
 }
