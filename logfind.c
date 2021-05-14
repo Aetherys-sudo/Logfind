@@ -5,13 +5,13 @@
 #include <ctype.h>
 #include <glob.h>
 
-#define MAX_BUFFER 1024
-#define MAX_WORD 50
+#define MAX_BUFFER 512
+#define MAX_WORD 30
 #define LETTER(A) (A >= 'a' && A <= 'z') || (A >= 'A' && A <= 'Z')
 
 	
 //function that checks if the word passed as argument is in the file or not
-int read(FILE *input, char words[][MAX_WORD], int w_count, char mode, const char *f_name)
+int read(FILE *input, char **words, int w_count, char mode, const char *f_name)
 {
 	char buff[MAX_WORD];
 	int i, j;
@@ -93,15 +93,26 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 		
-	char words[argc - 1][MAX_WORD];
+	//char words[argc - 1][MAX_WORD];
+	char **words = (char**) malloc(argc * sizeof(char*));
 	int i;
 	char mode;
+	for (i = 0; i < argc; i ++)
+	{
+		words[i] = (char*) malloc(MAX_WORD * sizeof(char));
+	}
+	
 	for (i = 0; i < argc - 1; i ++)
 	{
+		printf("arg: %s\n", argv[i + 1]);
 		if (argv[i + 1][0] == '-')
+		{
 			mode = argv[i + 1][1];
+		}
 		else
+		{
 			strcpy(words[i], argv[i + 1]);
+		}
 	}
 	
 	//file handling
@@ -123,7 +134,13 @@ int main(int argc, char *argv[])
 		fclose(file);
 	}
 	
-		
+	for (i = 0; i < argc; i ++)
+	{
+		free(words[i]);
+	}
+	
+	globfree(&paths);
+	free(words);	
 	return 0;	
 
 }
