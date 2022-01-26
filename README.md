@@ -1,5 +1,5 @@
 # Logfind
-Simple tool that searches for files that contain given word(s).
+Simple tool that searches for files that contain given word(s). This tool should mimic part of grep's functionality, although pretty limited.
 
 USAGE: "./logfind <words>"
 OPTIONAL: -o (logic OR, shows files that contain at least one word)
